@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a Support Ticket | AntigravityTickets</title>
+    <meta name="description" content="Submit and track your support tickets with AntigravityTickets. Fast, simple, and secure customer support.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'tickets/css/style.css' %}">
+    <!-- Custom JS -->
+    <script src="{% static 'tickets/js/app.js' %}" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-ticket-simple logo-icon"></i>
+                <h1>Antigravity<span>Tickets</span></h1>
+            </div>
+            <div class="header-actions">
+                <a href="/admin/" class="btn btn-ghost" title="Admin Panel">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Admin</span>
+                </a>
+                <button id="open-modal-btn" class="btn btn-primary" onclick="openTicketModal()">
+                    <i class="fa-solid fa-plus"></i> New Ticket
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <section class="stats-container">
+            <div class="stat-card" data-status="all">
+                <div class="stat-info">
+                    <span class="stat-label">My Tickets</span>
+                    <span id="stat-total" class="stat-value">0</span>
+                </div>
+                <div class="stat-icon-wrapper all-bg">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+            </div>
+            <div class="stat-card" data-status="open">
+                <div class="stat-info">
+                    <span class="stat-label">Open</span>
+                    <span id="stat-open" class="stat-value">0</span>
+                </div>
+                <div class="stat-icon-wrapper open-bg">
+                    <i class="fa-solid fa-envelope-open"></i>
+                </div>
+            </div>
+            <div class="stat-card" data-status="in_progress">
+                <div class="stat-info">
+                    <span class="stat-label">In Progress</span>
+                    <span id="stat-progress" class="stat-value">0</span>
+                </div>
+                <div class="stat-icon-wrapper progress-bg">
+                    <i class="fa-solid fa-spinner fa-spin-hover"></i>
+                </div>
+            </div>
+            <div class="stat-card" data-status="resolved">
+                <div class="stat-info">
+                    <span class="stat-label">Resolved</span>
+                    <span id="stat-resolved" class="stat-value">0</span>
+                </div>
+                <div class="stat-icon-wrapper resolved-bg">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Section -->
+        <main class="main-content">
+            <!-- Info Banner -->
+            <div class="info-banner">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>You are viewing your own tickets. Only an admin can update ticket status.</span>
+            </div>
+
+            <!-- Filter & Controls Toolbar -->
+            <div class="toolbar">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="open">Open</button>
+                    <button class="filter-btn" data-filter="in_progress">In Progress</button>
+                    <button class="filter-btn" data-filter="resolved">Resolved</button>
+                </div>
+                <div class="search-sort-group">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Search your tickets...">
+                    </div>
+                    <select id="sort-select">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="priority-desc">Priority: High to Low</option>
+                        <option value="priority-asc">Priority: Low to High</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Ticket List container -->
+            <div id="tickets-grid" class="tickets-grid">
+                <!-- Dynamic cards will be rendered here -->
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Loading tickets...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Creating Tickets -->
+    <div id="ticket-modal" class="modal-overlay">
+        <div class="modal-card">
+            <header class="modal-header">
+                <h2 id="modal-title">Submit Support Ticket</h2>
+                <button id="close-modal-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form id="ticket-form" class="modal-body">
+                {% csrf_token %}
+                <input type="hidden" id="ticket-id" name="id">
+
+                <!-- Name & Location row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Your Name <span class="required-star">*</span></label>
+                        <input type="text" id="name" name="name" placeholder="e.g. Jane Smith" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" placeholder="e.g. Floor 3, Office B">
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <div class="form-group">
+                    <label for="title">Ticket Title <span class="required-star">*</span></label>
+                    <input type="text" id="title" name="title" placeholder="What is the issue?" required>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description">Detailed Description</label>
+                    <textarea id="description" name="description" placeholder="Describe the problem in detail..." rows="4"></textarea>
+                </div>
+
+                <!-- Priority only (status is set by admin) -->
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority" name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </form>
+            <footer class="modal-footer">
+                <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" form="ticket-form" id="submit-btn" class="btn btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Ticket
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Toast Notification container -->
+    <div id="toast-container" class="toast-container"></div>
+</body>
+</html>
