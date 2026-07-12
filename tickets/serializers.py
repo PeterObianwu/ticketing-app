@@ -27,12 +27,9 @@ class TicketSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'status', 'session_key', 'created_at', 'updated_at']
-        extra_kwargs = {
-            'title': {'required': False},
-            # Never expose the session_key in API responses for security
-            'session_key': {'write_only': True},
-        }
+        read_only_fields = [
+            'id', 'title', 'status', 'session_key', 'created_at', 'updated_at',
+        ]
 
     def validate(self, attrs):
         ticket_type = attrs.get(

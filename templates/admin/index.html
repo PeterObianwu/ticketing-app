@@ -1,0 +1,88 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static log %}
+{% block bodyclass %}{{ block.super }} dashboard qing-dashboard{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <section class="admin-welcome">
+    <div>
+      <span class="eyebrow">Support dashboard</span>
+      <h1>Welcome back, {{ user.get_short_name|default:user.username }}</h1>
+      <p>Manage customer issues and equipment requests from one organized workspace.</p>
+    </div>
+    <a class="admin-primary-action" href="{% url 'admin:tickets_ticket_changelist' %}"><i class="fa-solid fa-ticket"></i> Manage tickets</a>
+  </section>
+
+  <section class="admin-stats" aria-label="Ticket overview">
+    <a class="admin-stat-card stat-total" href="{% url 'admin:tickets_ticket_changelist' %}">
+      <span class="admin-stat-copy"><small>All tickets</small><strong>{{ stats.total }}</strong></span>
+      <span class="admin-stat-icon"><i class="fa-solid fa-list-check"></i></span>
+    </a>
+    <a class="admin-stat-card stat-open" href="{% url 'admin:tickets_ticket_changelist' %}?status__exact=open">
+      <span class="admin-stat-copy"><small>Open</small><strong>{{ stats.open }}</strong></span>
+      <span class="admin-stat-icon"><i class="fa-solid fa-envelope-open"></i></span>
+    </a>
+    <a class="admin-stat-card stat-progress" href="{% url 'admin:tickets_ticket_changelist' %}?status__exact=in_progress">
+      <span class="admin-stat-copy"><small>In progress</small><strong>{{ stats.in_progress }}</strong></span>
+      <span class="admin-stat-icon"><i class="fa-solid fa-spinner"></i></span>
+    </a>
+    <a class="admin-stat-card stat-resolved" href="{% url 'admin:tickets_ticket_changelist' %}?status__exact=resolved">
+      <span class="admin-stat-copy"><small>Resolved</small><strong>{{ stats.resolved }}</strong></span>
+      <span class="admin-stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+    </a>
+  </section>
+
+  <div class="admin-workspace-grid">
+    <section class="management-panel">
+      <div class="section-heading">
+        <div><span class="eyebrow">Workspace</span><h2>Quick management</h2></div>
+      </div>
+      <div class="management-actions">
+        {% if perms.tickets.view_ticket %}
+        <a class="management-card" href="{% url 'admin:tickets_ticket_changelist' %}">
+          <span class="management-icon ticket"><i class="fa-solid fa-ticket"></i></span>
+          <span><strong>Support tickets</strong><small>Review requests, issues, priorities and statuses</small></span>
+          <i class="fa-solid fa-chevron-right management-arrow"></i>
+        </a>
+        {% endif %}
+        {% if perms.auth.view_user %}
+        <a class="management-card" href="{% url 'admin:auth_user_changelist' %}">
+          <span class="management-icon users"><i class="fa-solid fa-users"></i></span>
+          <span><strong>Administrators</strong><small>Manage staff accounts and access</small></span>
+          <i class="fa-solid fa-chevron-right management-arrow"></i>
+        </a>
+        {% endif %}
+        {% if perms.auth.view_group %}
+        <a class="management-card" href="{% url 'admin:auth_group_changelist' %}">
+          <span class="management-icon groups"><i class="fa-solid fa-user-lock"></i></span>
+          <span><strong>Permission groups</strong><small>Control roles and administrative permissions</small></span>
+          <i class="fa-solid fa-chevron-right management-arrow"></i>
+        </a>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="recent-panel">
+      <div class="section-heading"><div><span class="eyebrow">Activity</span><h2>Recent actions</h2></div></div>
+      {% get_admin_log 6 as admin_log for_user user %}
+      {% if not admin_log %}
+        <div class="empty-admin-state"><i class="fa-regular fa-clock"></i><p>No recent actions yet.</p></div>
+      {% else %}
+        <ul class="actionlist">
+        {% for entry in admin_log %}
+          <li>
+            <span class="action-icon {% if entry.is_addition %}addition{% elif entry.is_deletion %}deletion{% else %}change{% endif %}"><i class="fa-solid {% if entry.is_addition %}fa-plus{% elif entry.is_deletion %}fa-trash{% else %}fa-pen{% endif %}"></i></span>
+            <div class="action-copy">
+              {% if entry.is_deletion or not entry.get_admin_url %}<strong>{{ entry.object_repr }}</strong>{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}
+              {% if entry.content_type %}<span class="action-meta">{{ entry.content_type.name|capfirst }}</span>{% endif %}
+            </div>
+          </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

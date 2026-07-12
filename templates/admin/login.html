@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% if form.errors %}Error: {% endif %}Admin sign in | Qing Technology{% endblock %}
+{% block bodyclass %}{{ block.super }} login qing-login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div class="login-shell">
+  <div class="login-intro">
+    <span class="eyebrow">Qing Technology</span>
+    <h1>Support administration, simplified.</h1>
+    <p>Review requests, manage issues, and keep every support ticket moving.</p>
+    <div class="login-feature"><i class="fa-solid fa-shield-halved"></i><span>Secure staff access</span></div>
+  </div>
+  <div class="login-panel">
+    <div class="login-panel-heading">
+      <span class="login-icon"><i class="fa-solid fa-user-shield"></i></span>
+      <div><h2>Welcome back</h2><p>Sign in to the admin dashboard</p></div>
+    </div>
+    {% if form.errors %}<p class="errornote">Your username or password is incorrect. Please try again.</p>{% endif %}
+    <form action="{{ app_path }}" method="post" id="login-form">
+      {% csrf_token %}
+      <div class="form-row">
+        {{ form.username.errors }}
+        <label for="id_username">Username</label>
+        <div class="input-wrap"><i class="fa-solid fa-user"></i>{{ form.username }}</div>
+      </div>
+      <div class="form-row">
+        {{ form.password.errors }}
+        <label for="id_password">Password</label>
+        <div class="input-wrap"><i class="fa-solid fa-lock"></i>{{ form.password }}</div>
+        <input type="hidden" name="next" value="{{ next }}">
+      </div>
+      <div class="submit-row"><input type="submit" value="Sign in"></div>
+    </form>
+  </div>
+</div>
+{% endblock %}
