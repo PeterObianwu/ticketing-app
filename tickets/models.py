@@ -2,6 +2,11 @@ from django.db import models
 
 
 class Ticket(models.Model):
+    TICKET_TYPE_CHOICES = [
+        ('issue', 'Issue'),
+        ('request', 'Request'),
+    ]
+
     STATUS_CHOICES = [
         ('open', 'Open'),
         ('in_progress', 'In Progress'),
@@ -15,6 +20,8 @@ class Ticket(models.Model):
     ]
 
     title = models.CharField(max_length=200)
+    ticket_type = models.CharField(max_length=20, choices=TICKET_TYPE_CHOICES, default='issue')
+    requested_items = models.JSONField(blank=True, default=list)
     name = models.CharField(max_length=200, blank=True, default='')
     location = models.CharField(max_length=200, blank=True, default='')
     description = models.TextField(blank=True)

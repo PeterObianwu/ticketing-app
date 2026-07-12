@@ -46,6 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     var filterButtons = document.querySelectorAll('.filter-btn');
     var statCards     = document.querySelectorAll('.stat-card');
     var toastContainer = document.getElementById('toast-container');
+    var ticketTypeSelect = document.getElementById('ticket-type');
+    var requestsGroup = document.getElementById('requests-group');
+    var requestsDropdown = document.getElementById('requests-dropdown');
+    var requestsToggle = document.getElementById('requests-toggle');
+    var requestsSummary = document.getElementById('requests-summary');
+    var requestsError = document.getElementById('requests-error');
+    var descriptionLabel = document.getElementById('description-label');
+    var descriptionInput = document.getElementById('description');
+    var requestCheckboxes = document.querySelectorAll('input[name="requested_items"]');
 
     // Stats Elements
     var statTotal    = document.getElementById('stat-total');
@@ -80,6 +89,41 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function updateRequestsSummary() {
+        if (!requestsSummary) return;
+        var selected = Array.from(requestCheckboxes).filter(function(checkbox) {
+            return checkbox.checked;
+        });
+        requestsSummary.textContent = selected.length
+            ? selected.map(function(checkbox) {
+                return checkbox.parentElement.textContent.trim();
+            }).join(', ')
+            : 'Select one or more items';
+    }
+
+    function closeRequestsDropdown() {
+        if (requestsDropdown) requestsDropdown.classList.remove('open');
+        if (requestsToggle) requestsToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function updateTicketTypeFields() {
+        var isRequest = ticketTypeSelect && ticketTypeSelect.value === 'request';
+        if (requestsGroup) requestsGroup.hidden = !isRequest;
+        if (descriptionLabel) {
+            descriptionLabel.textContent = isRequest ? 'Reason' : 'Detailed Description';
+        }
+        if (descriptionInput) {
+            descriptionInput.placeholder = isRequest
+                ? 'Explain why these items are required...'
+                : 'Describe the problem in detail...';
+        }
+        if (!isRequest) {
+            requestCheckboxes.forEach(function(checkbox) { checkbox.checked = false; });
+            if (requestsError) requestsError.hidden = true;
+            closeRequestsDropdown();
+        }
+        updateRequestsSummary();
+    }
     // -----------------------------------------------------------------------
     // Modal Control — exposed on window so inline onclick can also call it
     // -----------------------------------------------------------------------
@@ -90,6 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset priority default
         var priorityEl = document.getElementById('priority');
         if (priorityEl) priorityEl.value = 'medium';
+        if (ticketTypeSelect) ticketTypeSelect.value = 'issue';
+        updateTicketTypeFields();
         ticketModal.classList.add('active');
         document.body.style.overflow = 'hidden';
         setTimeout(function() {
@@ -122,6 +168,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ticketForm) {
         ticketForm.addEventListener('submit', handleFormSubmit);
     }
+
+    if (ticketTypeSelect) {
+        ticketTypeSelect.addEventListener('change', updateTicketTypeFields);
+    }
+
+    if (requestsToggle) {
+        requestsToggle.addEventListener('click', function() {
+            var isOpen = requestsDropdown.classList.toggle('open');
+            requestsToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+    }
+
+    requestCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (requestsError) requestsError.hidden = true;
+            updateRequestsSummary();
+        });
+    });
+
+    document.addEventListener('click', function(event) {
+        if (requestsDropdown && !requestsDropdown.contains(event.target)) {
+            closeRequestsDropdown();
+        }
+    });
 
     if (searchInput) {
         var searchTimeout = null;
@@ -264,6 +334,14 @@ document.addEventListener('DOMContentLoaded', () => {
         var nameHTML = ticket.name
             ? '<span class="card-name"><i class="fa-solid fa-user"></i> ' + escapeHTML(ticket.name) + '</span>'
             : '';
+        var typeHTML = '<span class="card-type"><i class="fa-solid fa-layer-group"></i> ' +
+            escapeHTML(capitalize(ticket.ticket_type || 'issue')) + '</span>';
+        var requestDetailsHTML = ticket.ticket_type === 'request' && ticket.requested_items && ticket.requested_items.length
+            ? '<div class="requested-items"><strong>Requested:</strong> ' +
+                ticket.requested_items.map(function(item) {
+                    return escapeHTML(capitalize(item));
+                }).join(', ') + '</div>'
+            : '';
 
         return (
             '<div class="ticket-card status-' + ticket.status + '" data-id="' + ticket.id + '">' +
@@ -271,8 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     '<h3 class="ticket-title">' + escapeHTML(ticket.title) + '</h3>' +
                     '<span class="badge ' + statusBadgeClass + '">' + (statusLabels[ticket.status] || ticket.status) + '</span>' +
                 '</div>' +
+                requestDetailsHTML +
                 '<p class="ticket-desc">' + escapeHTML(ticket.description || 'No description provided.') + '</p>' +
-                '<div class="card-meta">' + nameHTML + locationHTML + '</div>' +
+                '<div class="card-meta">' + typeHTML + nameHTML + locationHTML + '</div>' +
                 '<div class="card-details">' +
                     '<span class="card-priority priority-' + ticket.priority + '">' +
                         '<i class="fa-solid fa-circle" style="font-size:0.5rem"></i> ' + capitalize(ticket.priority) +
@@ -293,6 +372,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFormSubmit(e) {
         e.preventDefault();
 
+        var ticketType = ticketTypeSelect ? ticketTypeSelect.value : 'issue';
+        var requestedItems = Array.from(requestCheckboxes)
+            .filter(function(checkbox) { return checkbox.checked; })
+            .map(function(checkbox) { return checkbox.value; });
+
+        if (ticketType === 'request' && requestedItems.length === 0) {
+            if (requestsError) requestsError.hidden = false;
+            if (requestsDropdown) requestsDropdown.classList.add('open');
+            if (requestsToggle) requestsToggle.setAttribute('aria-expanded', 'true');
+            return;
+        }
+
         var submitBtn = document.getElementById('submit-btn');
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -300,7 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         var ticketData = {
-            title:       (document.getElementById('title')       || {}).value || '',
+            ticket_type: ticketType,
+            requested_items: requestedItems,
             name:        (document.getElementById('name')        || {}).value || '',
             location:    (document.getElementById('location')    || {}).value || '',
             description: (document.getElementById('description') || {}).value || '',

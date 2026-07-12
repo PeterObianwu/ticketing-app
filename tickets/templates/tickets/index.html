@@ -135,19 +135,42 @@
                     </div>
                     <div class="form-group">
                         <label for="location">Location</label>
-                        <input type="text" id="location" name="location" placeholder="e.g. Floor 3, Office B">
+                        <input type="text" id="location" name="location" placeholder="e.g. Coker Terminal">
                     </div>
                 </div>
 
-                <!-- Title -->
+                <!-- Ticket type -->
                 <div class="form-group">
-                    <label for="title">Ticket Title <span class="required-star">*</span></label>
-                    <input type="text" id="title" name="title" placeholder="What is the issue?" required>
+                    <label for="ticket-type">Ticket Type <span class="required-star">*</span></label>
+                    <select id="ticket-type" name="ticket_type" required>
+                        <option value="issue" selected>Issue</option>
+                        <option value="request">Request</option>
+                    </select>
                 </div>
 
-                <!-- Description -->
+                <!-- Equipment requests, shown only for request tickets -->
+                <div id="requests-group" class="form-group" hidden>
+                    <label>Requests <span class="required-star">*</span></label>
+                    <div id="requests-dropdown" class="checkbox-dropdown">
+                        <button type="button" id="requests-toggle" class="checkbox-dropdown-toggle" aria-expanded="false">
+                            <span id="requests-summary">Select one or more items</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="checkbox-dropdown-menu">
+                            <label><input type="checkbox" name="requested_items" value="laptop"> Laptop</label>
+                            <label><input type="checkbox" name="requested_items" value="mouse"> Mouse</label>
+                            <label><input type="checkbox" name="requested_items" value="signature_pad"> Signature pad</label>
+                            <label><input type="checkbox" name="requested_items" value="barcode_scanner"> Barcode scanner</label>
+                            <label><input type="checkbox" name="requested_items" value="ticket_printer"> Ticket printer</label>
+                            <label><input type="checkbox" name="requested_items" value="a4_printer"> A4 printer</label>
+                        </div>
+                    </div>
+                    <span id="requests-error" class="field-error" hidden>Select at least one request.</span>
+                </div>
+
+                <!-- Description / request reason -->
                 <div class="form-group">
-                    <label for="description">Detailed Description</label>
+                    <label id="description-label" for="description">Detailed Description</label>
                     <textarea id="description" name="description" placeholder="Describe the problem in detail..." rows="4"></textarea>
                 </div>
 

@@ -9,11 +9,11 @@ class TicketAdmin(admin.ModelAdmin):
     # List view configuration
     # ------------------------------------------------------------------
     list_display = (
-        'id', 'title', 'name', 'location',
+        'id', 'title', 'ticket_type', 'name', 'location',
         'colored_status', 'priority_badge', 'created_at',
     )
     list_display_links = ('id', 'title')
-    list_filter = ('status', 'priority', 'created_at')
+    list_filter = ('ticket_type', 'status', 'priority', 'created_at')
     search_fields = ('title', 'name', 'location', 'description')
     ordering = ('-created_at',)
     list_per_page = 25
@@ -24,7 +24,10 @@ class TicketAdmin(admin.ModelAdmin):
     # ------------------------------------------------------------------
     fieldsets = (
         ('Ticket Info', {
-            'fields': ('title', 'name', 'location', 'description', 'priority'),
+            'fields': (
+                'title', 'ticket_type', 'requested_items', 'name', 'location',
+                'description', 'priority',
+            ),
         }),
         ('Status Management', {
             'fields': ('status',),
