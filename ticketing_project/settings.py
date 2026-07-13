@@ -28,6 +28,9 @@ SECRET_KEY = 'django-insecure-&r*!h)1e4#te5imp8(j@v0zu$5(ba+@=3*v0=081nz=!y23id6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').strip().lower() in ('true', '1', 'yes', 'on')
+USE_SUPABASE = os.getenv('USE_SUPABASE', str(not DEBUG)).strip().lower() in (
+    'true', '1', 'yes', 'on',
+)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -81,14 +84,7 @@ WSGI_APPLICATION = 'ticketing_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
+if USE_SUPABASE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -102,6 +98,13 @@ else:
             'OPTIONS': {
                 'sslmode': 'require',
             },
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
